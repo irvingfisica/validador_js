@@ -1,4 +1,4 @@
-# Validador de Datos CSV/ZIP 📊
+# Validador de Datos CSV/ZIP
 
 Una herramienta ligera basada en web para la validación, perfilado y limpieza de archivos CSV. Diseñada para detectar problemas de codificación (encoding), caracteres especiales y consistencia en los datos antes de procesos de carga masiva.
 
