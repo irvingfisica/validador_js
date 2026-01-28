@@ -1,0 +1,86 @@
+body {
+    background: #fafafa;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    overflow: hidden;
+}
+
+.container-fluid {
+    padding: 0;
+}
+
+#sidebar {
+    top: 0;
+    left: 0;
+    height: 100vh;
+    background: #f1f1f1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+#barra {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 3rem;
+}
+
+#incBlock {
+    margin-top: 2rem;
+}
+
+#stata {
+    margin-top: auto;
+}
+
+h1 {
+    margin-bottom: 2rem;
+}
+
+#mainContent {
+    padding-top: 3rem;
+    overflow-y: auto;
+    height: 100vh;
+    padding-left: 4rem;
+    padding-right: 4rem;
+}
+
+.drop-zone {
+    width: 100%;
+    aspect-ratio: 20 / 5;
+    border: 2px dashed #999;
+    background: #f1f1f1;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #555;
+    transition: 0.2s;
+}
+
+.drop-zone.dragover {
+    background: #e2eefd;
+    border-color: #4a7cff;
+}
+
+.encoding-buttons > .btn {
+    margin-right: 0.42rem;
+}
+
+#tableContainer {
+    margin-top: 2rem;
+}
+
+.weirdcar {
+    font-size: 1.3rem;
+    color: red;
+}

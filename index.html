@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Bootstrap demo</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="./style.css" />
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-2" id="sidebar">
+                    <div id="barra">
+                        <h3>Herramientas:</h3>
+                        <div id="herramientas" class="d-grid gap-2">
+                            <button
+                                class="btn btn-primary tools"
+                                type="button"
+                                id="cargarTool"
+                            >
+                                Cargar archivo
+                            </button>
+                            <button class="btn btn-primary tools" type="button">
+                                Validación de columnas
+                            </button>
+                        </div>
+                        <div id="stata">
+                            <div class="mt-2 text-muted small">
+                                <p>
+                                    <span><strong>Estatus: </strong></span
+                                    ><br />
+                                    <span
+                                        id="spinner"
+                                        class="spinner-border spinner-border-sm me-2 d-none"
+                                    ></span>
+                                    <span id="status">Sin archivo cargado</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-10" id="mainContent">
+                    <div class="row" id="mesaTrabajo"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" tabindex="-1" id="modal">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle"></h5>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body" id="modalBody">
+                        <p>Modal body text goes here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous"
+        ></script>
+        <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+        <script src="
+        https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js
+        "></script>
+        <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+        <script src="./main.js" type="module"></script>
+    </body>
+</html>
