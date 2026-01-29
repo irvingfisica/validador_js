@@ -284,6 +284,7 @@ function weirdTable(raros) {
 function streamCSV(file, encoding) {
   return new Promise((resolve) => {
     const rows = [];
+    const columns = {};
     let headers = null;
     let index = 0;
     let lastUpdate = 0;
@@ -291,16 +292,21 @@ function streamCSV(file, encoding) {
     Papa.parse(file, {
       worker: true,
       encoding,
-      skipEmptylines: true,
+      skipEmptyLines: true,
       chunkSize: 1024 * 1024,
       step: function (results) {
         utils.showSpinner();
         if (!headers) {
           headers = results.data;
+          headers.forEach((h) => (columns[h] = []));
           return;
         } else {
           let obj = { _index: index++ };
-          headers.forEach((h, i) => (obj[h] = results.data[i]));
+          headers.forEach((h, i) => {
+            const valor = results.data[i];
+            obj[h] = valor;
+            columns[h].push(valor);
+          });
           rows.push(obj);
 
           if (index - lastUpdate > 1000) {
@@ -311,7 +317,7 @@ function streamCSV(file, encoding) {
       },
       complete: function () {
         utils.hideSpinner();
-        resolve({ headers, rows });
+        resolve({ headers, rows, columns, meta: {} });
       },
     });
   });
