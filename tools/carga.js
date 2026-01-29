@@ -59,6 +59,19 @@ export function intface() {
       const file = event.dataTransfer.files[0];
       handleFile(file);
     });
+
+  console.log(window.appState);
+  if (window.appState.dataframe) {
+    d3.select("#dropZone p").html(
+      `Archivo actual: <strong>${window.appState.file.name}</strong>`,
+    );
+
+    renderButtons(
+      window.appState.file,
+      window.appState.ratios,
+      window.appState.encoding,
+    );
+  }
 }
 
 async function handleFile(file) {
@@ -73,7 +86,6 @@ async function handleFile(file) {
   let ratios = [];
 
   let buffer;
-  console.log(file);
 
   if (file.name.endsWith(".zip")) {
     const zip = await JSZip.loadAsync(file);
@@ -123,10 +135,13 @@ async function handleFile(file) {
   ratios.sort((a, b) => a.score - b.score);
   console.log(ratios);
 
-  renderButtons(file, ratios);
+  window.appState.file = file;
+  window.appState.ratios = ratios;
+  const enc = ratios[0].encoding;
+  renderButtons(file, ratios, enc);
 }
 
-function renderButtons(file, ratios) {
+function renderButtons(file, ratios, enc) {
   const encbuts = d3.select("#encodingButtons");
   encbuts.selectAll("*").remove();
 
@@ -134,7 +149,8 @@ function renderButtons(file, ratios) {
     .selectAll("button")
     .data(ratios)
     .join("button")
-    .attr("class", (d) => "btn " + colorFromRatio(d.score))
+    .attr("class", (d) => "btn encbot " + colorFromRatio(d.score))
+    .attr("id", (d) => d.encoding)
     .html(
       (d) =>
         "<small><strong>" +
@@ -147,31 +163,49 @@ function renderButtons(file, ratios) {
 
   encbuts
     .append("p")
+    .style("margin-bottom", "0.2rem")
     .append("small")
     .html(
-      "Por defecto se selecciona el mejor encoding, presiona algún botón para probar con otro.",
+      "El encoding seleccionado es <strong>" +
+        enc +
+        "</strong>, presiona algún botón para probar con otro.",
     );
 
-  activateEncoding(ratios[0], file);
+  encbuts
+    .append("p")
+    .append("small")
+    .append("strong")
+    .style("color", "red")
+    .html(
+      "Toma en cuenta que si cambias el encoding se perderán los cambios realizados.",
+    );
+
+  const selrat = ratios.find((elem) => elem.encoding === enc);
+  activateEncoding(selrat, file);
 }
 
 async function activateEncoding(ratio, file) {
-  console.log(ratio);
-  console.log(file);
   limpiarIncidencias();
+  let dataframe = window.appState.dataframe;
+  if (
+    !window.appState.dataframe ||
+    window.appState.encoding !== ratio.encoding
+  ) {
+    dataframe = await streamCSV(file, ratio.encoding);
+    window.appState.dataframe = dataframe;
+    window.appState.encoding = ratio.encoding;
+    console.log(dataframe);
+    utils.setStatus(
+      `CSV cargado: ${dataframe.rows.length.toLocaleString()} filas; ${dataframe.headers.length.toLocaleString()} columnas.`,
+    );
+  }
 
-  const dataframe = await streamCSV(file, ratio.encoding);
-  window.dataframe = dataframe;
-
-  utils.setStatus(
-    `CSV cargado: ${dataframe.rows.length.toLocaleString()} filas; ${dataframe.headers.length.toLocaleString()} columnas.`,
-  );
-  console.log(dataframe);
+  console.log(window.appState.dataframe);
 
   validacionBase(ratio, file, dataframe);
 }
 
-function validacionBase(ratio, file, dataframe) {
+function validarNombre(file) {
   const validName = utils.validarCadena(file.name.replace(".csv", ""));
   if (validName.valida) {
     agregarIncidencia(
@@ -187,7 +221,9 @@ function validacionBase(ratio, file, dataframe) {
       "cuidado",
     );
   }
+}
 
+function validarEncoding(ratio) {
   if (ratio.badChars.length == 0) {
     agregarIncidencia("No se encontraron caracteres extraños.", "exito");
   } else {
@@ -200,44 +236,49 @@ function validacionBase(ratio, file, dataframe) {
   }
 
   d3.select("#revisarEncoding").on("click", () => weirdTable(ratio.badChars));
+}
 
-  function weirdTable(raros) {
-    const myModal = new bootstrap.Modal(document.getElementById("modal"));
+function validacionBase(ratio, file, dataframe) {
+  validarNombre(file);
+  validarEncoding(ratio);
+}
 
-    console.log(raros);
-    d3.select("#modalTitle").html("Tabla de caracteres extraños");
-    d3.select("#modalBody").selectAll("*").remove();
+function weirdTable(raros) {
+  const myModal = new bootstrap.Modal(document.getElementById("modal"));
 
-    const tabla = d3
-      .select("#modalBody")
-      .append("table")
-      .attr("class", "table table-sm");
+  console.log(raros);
+  d3.select("#modalTitle").html("Tabla de caracteres extraños");
+  d3.select("#modalBody").selectAll("*").remove();
 
-    const cabeza = tabla.append("thead");
-    const cuerpo = tabla.append("tbody");
+  const tabla = d3
+    .select("#modalBody")
+    .append("table")
+    .attr("class", "table table-sm");
 
-    cabeza
-      .append("tr")
-      .selectAll("th")
-      .data(["caracter", "frecuencia", "ejemplos"])
-      .join("th")
-      .html((d) => d);
+  const cabeza = tabla.append("thead");
+  const cuerpo = tabla.append("tbody");
 
-    const filas = cuerpo.selectAll("tr").data(raros).join("tr");
-    filas
-      .append("td")
-      .html((d) => '<span class="weirdcar">' + d.char + "</span>");
-    filas.append("td").html((d) => d.count);
-    filas
-      .append("td")
-      .selectAll("p")
-      .data((d) => d.samples)
-      .join("p")
-      .style("margin-bottom", "0.5rem")
-      .html((p) => p);
+  cabeza
+    .append("tr")
+    .selectAll("th")
+    .data(["caracter", "frecuencia", "ejemplos"])
+    .join("th")
+    .html((d) => d);
 
-    myModal.show();
-  }
+  const filas = cuerpo.selectAll("tr").data(raros).join("tr");
+  filas
+    .append("td")
+    .html((d) => '<span class="weirdcar">' + d.char + "</span>");
+  filas.append("td").html((d) => d.count);
+  filas
+    .append("td")
+    .selectAll("p")
+    .data((d) => d.samples)
+    .join("p")
+    .style("margin-bottom", "0.5rem")
+    .html((p) => p);
+
+  myModal.show();
 }
 
 function streamCSV(file, encoding) {
