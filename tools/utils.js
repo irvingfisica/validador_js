@@ -99,6 +99,54 @@ function esc(s) {
   );
 }
 
+export function validarNombreCol(texto) {
+  let incidencias = [];
+
+  if (texto !== texto.toLowerCase()) {
+    incidencias.push({
+      razon: "El nombre de columna contiene mayúsculas",
+      tipo: "cuidado",
+    });
+  }
+
+  const regexBasica = /^[a-zA-Z0-9_]+$/;
+
+  if (!regexBasica.test(texto)) {
+    incidencias.push({
+      razon:
+        "El nombre de columna contiene caracteres especiales, ñ, tildes, puntuación o espacios.",
+      tipo: "error",
+    });
+  }
+
+  const palabras = texto.toLowerCase().split(/[._]/);
+
+  if (palabras.length > 5) {
+    incidencias.push({
+      razon: "El nombre de columna tiene más de 5 palabras",
+      tipo: "cuidado",
+    });
+  }
+
+  for (let palabra of palabras) {
+    if (prohibidas.has(palabra)) {
+      incidencias.push({
+        razon: `El nombre de columna contiene un artículo o preposición innecesaria: "${palabra}".`,
+        tipo: "cuidado",
+      });
+    }
+  }
+
+  if (texto.includes("_1")) {
+    incidencias.push({
+      razon: "El nombre de columna contiene '_1'",
+      tipo: "error",
+    });
+  }
+
+  return incidencias;
+}
+
 export function validarCadena(texto) {
   const textoMin = texto.toLowerCase().trim();
 
@@ -107,47 +155,64 @@ export function validarCadena(texto) {
   if (!regexBasica.test(texto)) {
     return {
       valida: false,
-      razon: "Contiene caracteres especiales, ñ, tildes o espacios.",
+      razon:
+        "Contiene caracteres especiales, ñ, tildes, puntuación o espacios.",
     };
   }
 
-  const prohibidas = new Set([
-    "el",
-    "la",
-    "los",
-    "las",
-    "un",
-    "una",
-    "unos",
-    "unas",
-    "a",
-    "ante",
-    "bajo",
-    "cabe",
-    "con",
-    "contra",
-    "de",
-    "desde",
-    "durante",
-    "en",
-    "entre",
-    "hacia",
-    "hasta",
-    "mediante",
-    "para",
-    "por",
-    "segun",
-    "sin",
-    "so",
-    "sobre",
-    "tras",
-    "versus",
-    "via",
-  ]);
+  const palabras = textoMin.split(/[._]/);
 
-  if (prohibidas.has(textoMin)) {
-    return { valida: false, razon: "Contiene artículo o preposición." };
+  for (let palabra of palabras) {
+    if (prohibidas.has(palabra)) {
+      return {
+        valida: false,
+        razon: `El nombre contiene un artículo o preposición innecesaria: "${palabra}".`,
+      };
+    }
   }
 
   return { valida: true };
+}
+
+const prohibidas = new Set([
+  "el",
+  "la",
+  "los",
+  "las",
+  "un",
+  "una",
+  "unos",
+  "unas",
+  "a",
+  "ante",
+  "bajo",
+  "cabe",
+  "con",
+  "contra",
+  "de",
+  "desde",
+  "durante",
+  "en",
+  "entre",
+  "hacia",
+  "hasta",
+  "mediante",
+  "para",
+  "por",
+  "segun",
+  "sin",
+  "so",
+  "sobre",
+  "tras",
+  "versus",
+  "via",
+]);
+
+export function resetState() {
+  window.appState = {
+    file: null,
+    ratios: null,
+    encoding: null,
+    dataframe: null,
+  };
 }

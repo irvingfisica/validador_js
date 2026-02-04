@@ -1,11 +1,7 @@
+import * as utils from "./tools/utils.js";
 import * as carga from "./tools/carga.js";
 
-window.appState = {
-  file: null,
-  ratios: null,
-  encoding: null,
-  dataframe: null,
-};
+utils.resetState();
 
 d3.select("#cargarTool").on("click", carga.intface);
 

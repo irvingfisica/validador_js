@@ -75,6 +75,7 @@ export function intface() {
 }
 
 async function handleFile(file) {
+  utils.resetState();
   const encbuts = d3.select("#encodingButtons");
   encbuts.selectAll("*").remove();
 
@@ -185,6 +186,7 @@ function renderButtons(file, ratios, enc) {
 }
 
 async function activateEncoding(ratio, file) {
+  utils.resetState();
   limpiarIncidencias();
   let dataframe = window.appState.dataframe;
   if (
@@ -239,8 +241,20 @@ function validarEncoding(ratio) {
 }
 
 function validacionBase(ratio, file, dataframe) {
+  limpiarIncidencias();
   validarNombre(file);
   validarEncoding(ratio);
+  validarColumnas(dataframe);
+}
+
+function validarColumnas(dataframe) {
+  dataframe.headers.forEach((col) => {
+    const incidencias = utils.validarNombreCol(col);
+    agregarIncidencia("Columna: <strong>" + col + "</strong>", "");
+    incidencias.forEach((inc) => {
+      agregarIncidencia(inc.razon, inc.tipo);
+    });
+  });
 }
 
 function weirdTable(raros) {
