@@ -186,7 +186,6 @@ function renderButtons(file, ratios, enc) {
 }
 
 async function activateEncoding(ratio, file) {
-  utils.resetState();
   limpiarIncidencias();
   let dataframe = window.appState.dataframe;
   if (
