@@ -75,6 +75,7 @@ export function intface() {
 }
 
 async function handleFile(file) {
+  d3.select("#dropZone p").html(`Procesando archivo...`);
   utils.resetState();
   const encbuts = d3.select("#encodingButtons");
   encbuts.selectAll("*").remove();
@@ -318,7 +319,7 @@ function validarColumnas(dataframe) {
         ul.append("li").attr("id", "posnum_" + i);
         agregarIncidencia(
           "posnum_" + i,
-          "La columna podría ser numérica",
+          "La columna podría ser numérica (revisar)",
           "conversion",
         );
       }
@@ -327,7 +328,7 @@ function validarColumnas(dataframe) {
         ul.append("li").attr("id", "posfec_" + i);
         agregarIncidencia(
           "posfec_" + i,
-          "La columna podría ser de fechas",
+          "La columna podría ser de fechas (revisar)",
           "conversion",
         );
       }
