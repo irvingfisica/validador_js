@@ -94,7 +94,9 @@ async function handleFile(file) {
       f.name.endsWith(".csv"),
     );
     if (!csvFile) {
-      agregarIncidencia("El archivo ZIP no contiene un CSV", "error");
+      d3.select("#dropZone p").html(
+        `<strong>El archivo ZIP no contiene un CSV</strong>`,
+      );
       utils.hideSpinner();
       utils.setStatus("El archivo no se pudo cargar.");
       return;
@@ -108,7 +110,9 @@ async function handleFile(file) {
   } else if (file.name.endsWith(".csv")) {
     buffer = await file.arrayBuffer();
   } else {
-    agregarIncidencia("El archivo no es ni CSV ni ZIP", "error");
+    d3.select("#dropZone p").html(
+      `<strong>El archivo no es ni CSV ni ZIP</strong>`,
+    );
     utils.hideSpinner();
     utils.setStatus("El archivo no se pudo cargar.");
     return;
@@ -206,15 +210,26 @@ async function activateEncoding(ratio, file) {
   validacionBase(ratio, file, dataframe);
 }
 
-function validarNombre(file) {
+function validacionBase(ratio, file, dataframe) {
+  limpiarIncidencias();
+  const base = d3.select("#incidencias").append("ul").attr("id", "listaBase");
+  validarNombre(file, base);
+  validarEncoding(ratio, base);
+  validarColumnas(dataframe);
+}
+
+function validarNombre(file, base) {
   const validName = utils.validarCadena(file.name.replace(".csv", ""));
+  base.append("li").attr("id", "nombre");
   if (validName.valida) {
     agregarIncidencia(
+      "nombre",
       "El nombre de archivo: <strong>" + file.name + "</strong> es válido.",
       "exito",
     );
   } else {
     agregarIncidencia(
+      "nombre",
       "El nombre de archivo: <strong>" +
         file.name +
         "</strong> NO es válido, es necesario cambiarlo. " +
@@ -224,11 +239,17 @@ function validarNombre(file) {
   }
 }
 
-function validarEncoding(ratio) {
+function validarEncoding(ratio, base) {
+  base.append("li").attr("id", "encoding");
   if (ratio.badChars.length == 0) {
-    agregarIncidencia("No se encontraron caracteres extraños.", "exito");
+    agregarIncidencia(
+      "encoding",
+      "No se encontraron caracteres extraños.",
+      "exito",
+    );
   } else {
     agregarIncidencia(
+      "encoding",
       "Se encontraron caracteres extraños. La calificación obtenida es <strong>" +
         (1.0 - ratio.score).toLocaleString() +
         '</strong> <small>(idealmente 1)</small>. <button class="btn btn-outline-dark btn-sm mx-1" id="revisarEncoding">revisar</button>',
@@ -239,19 +260,17 @@ function validarEncoding(ratio) {
   d3.select("#revisarEncoding").on("click", () => weirdTable(ratio.badChars));
 }
 
-function validacionBase(ratio, file, dataframe) {
-  limpiarIncidencias();
-  validarNombre(file);
-  validarEncoding(ratio);
-  validarColumnas(dataframe);
-}
-
 function validarColumnas(dataframe) {
-  dataframe.headers.forEach((col) => {
+  const divo = d3.select("#incidencias").append("div");
+  divo.append("h3").html("Columnas:");
+  dataframe.headers.forEach((col, i) => {
+    const divc = divo.append("div");
+    divc.append("p").html("Columna: <strong>" + col + "</strong>");
+    const ul = divc.append("ul");
     const incidencias = utils.validarNombreCol(col);
-    agregarIncidencia("Columna: <strong>" + col + "</strong>", "");
-    incidencias.forEach((inc) => {
-      agregarIncidencia(inc.razon, inc.tipo);
+    incidencias.forEach((inc, j) => {
+      ul.append("li").attr("id", "ele_" + i + "_" + j);
+      agregarIncidencia("ele_" + i + "_" + j, inc.razon, inc.tipo);
     });
   });
 }
@@ -348,9 +367,9 @@ function tipoFromRatio(r) {
   return "error";
 }
 
-function agregarIncidencia(texto, tipo) {
-  const inco = d3.select("#incidencias");
-  const mensaje = inco.append("li").append("p");
+function agregarIncidencia(ancla, texto, tipo) {
+  const inco = d3.select("#incidencias").select("#" + ancla);
+  const mensaje = inco.append("p");
 
   if (tipo == "error") {
     mensaje.style("color", "red").html("<strong>" + texto + "</strong>");
