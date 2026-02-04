@@ -84,3 +84,8 @@ h1 {
     font-size: 1.3rem;
     color: red;
 }
+
+.tipo {
+    color: #1a2ca3;
+    font-weight: bold;
+}

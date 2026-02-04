@@ -267,11 +267,80 @@ function validarColumnas(dataframe) {
     const divc = divo.append("div");
     divc.append("p").html("Columna: <strong>" + col + "</strong>");
     const ul = divc.append("ul");
+
     const incidencias = utils.validarNombreCol(col);
+    console.log(col, incidencias);
     incidencias.forEach((inc, j) => {
       ul.append("li").attr("id", "ele_" + i + "_" + j);
       agregarIncidencia("ele_" + i + "_" + j, inc.razon, inc.tipo);
     });
+
+    const tipocol = utils.analizarColumna(dataframe.columns[col]);
+    if (tipocol.tipo === "vacia") {
+      ul.append("li").attr("id", "tipo_" + i);
+      agregarIncidencia(
+        "tipo_" + i,
+        "<strong>La columna está vacía</strong>",
+        "error",
+      );
+    } else if (tipocol.tipo === "numerica") {
+      ul.append("li").attr("id", "tipo_" + i);
+      agregarIncidencia(
+        "tipo_" + i,
+        'La columna es <span class="tipo">numérica</span>',
+        "",
+      );
+    } else if (tipocol.tipo === "fecha") {
+      ul.append("li").attr("id", "tipo_" + i);
+      agregarIncidencia(
+        "tipo_" + i,
+        'La columna es de <span class="tipo">fechas</span>, con el formato <span class="tipo">' +
+          tipocol.formato +
+          "</span>",
+        "",
+      );
+    } else if (tipocol.tipo === "categorica") {
+      ul.append("li").attr("id", "tipo_" + i);
+      agregarIncidencia(
+        "tipo_" + i,
+        'La columna es de <span class="tipo">categorías</span>',
+        "",
+      );
+    } else {
+      ul.append("li").attr("id", "tipo_" + i);
+      agregarIncidencia(
+        "tipo_" + i,
+        'La columna es de <span class="tipo">texto</span>',
+        "",
+      );
+
+      if ("posible_numerico" in tipocol) {
+        ul.append("li").attr("id", "posnum_" + i);
+        agregarIncidencia(
+          "posnum_" + i,
+          "La columna podría ser numérica",
+          "conversion",
+        );
+      }
+
+      if ("posible_fecha" in tipocol) {
+        ul.append("li").attr("id", "posfec_" + i);
+        agregarIncidencia(
+          "posfec_" + i,
+          "La columna podría ser de fechas",
+          "conversion",
+        );
+      }
+
+      if ("mayusculas" in tipocol) {
+        ul.append("li").attr("id", "may_" + i);
+        agregarIncidencia(
+          "may_" + i,
+          "Los textos de la columna están todos en mayúsculas.",
+          "cuidado",
+        );
+      }
+    }
   });
 }
 
@@ -329,13 +398,13 @@ function streamCSV(file, encoding) {
       step: function (results) {
         utils.showSpinner();
         if (!headers) {
-          headers = results.data;
+          headers = results.data.map((ele) => ele.trim());
           headers.forEach((h) => (columns[h] = []));
           return;
         } else {
           let obj = { _index: index++ };
           headers.forEach((h, i) => {
-            const valor = results.data[i];
+            const valor = results.data[i].trim();
             obj[h] = valor;
             columns[h].push(valor);
           });
@@ -382,7 +451,12 @@ function agregarIncidencia(ancla, texto, tipo) {
   }
 
   if (tipo == "cuidado") {
-    mensaje.style("color", "#FA891A").html(texto);
+    mensaje.style("color", "#F25912").html(texto);
+    return;
+  }
+
+  if (tipo == "conversion") {
+    mensaje.style("color", "#001BB7").html("<strong>" + texto + "</strong>");
     return;
   }
 
