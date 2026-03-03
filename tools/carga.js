@@ -34,6 +34,13 @@ export function intface() {
     .attr("id", "encodingButtons")
     .attr("class", "encoding-buttons d-grid gap-2");
 
+  const framec = contenedor
+    .append("div")
+    .attr("id", "gridBlock")
+    .attr("class", "col-md-10");
+
+  framec.append("h2").html("Vista de los datos");
+
   const incid = contenedor
     .append("div")
     .attr("id", "incBlock")
@@ -208,6 +215,7 @@ async function activateEncoding(ratio, file) {
 
   console.log(window.appState.dataframe);
 
+  mostrarGrid(window.appState.dataframe);
   validacionBase(ratio, file, dataframe);
 }
 
@@ -467,4 +475,54 @@ function agregarIncidencia(ancla, texto, tipo) {
 function limpiarIncidencias() {
   const inco = d3.select("#incidencias");
   inco.selectAll("*").remove();
+}
+
+// En carga.js
+
+let gridApi; // Variable global en el módulo para controlarlo
+
+export function mostrarGrid(dataframe) {
+  // 1. Limpiar o preparar el contenedor en el mainContent
+  const mesa = d3.select("#mesaTrabajo");
+  d3.select("#gridBlock").selectAll("*").remove();
+
+  // Si ya existe el contenedor del grid, no lo dupliques, solo actualiza datos
+  //
+  d3.select("#gridBlock")
+    .append("div")
+    .attr("id", "myGrid")
+    .attr("class", "ag-theme-alpine")
+    .style("height", "500px") // Altura fija o dinámica
+    .style("width", "100%");
+
+  // 2. Configurar columnas para AG Grid
+  const columnDefs = dataframe.headers.map((h) => ({
+    headerName: h,
+    field: h,
+    sortable: true,
+    filter: true,
+    resizable: true,
+    editable: true, // Permitimos edición manual si quieres
+  }));
+
+  const gridOptions = {
+    columnDefs: columnDefs,
+    rowData: dataframe.rows,
+    pagination: true,
+    paginationPageSize: 100,
+    domLayout: "normal",
+    onCellValueChanged: (event) => {
+      console.log("Dato editado manualmente:", event);
+      // Aquí podrías sincronizar con window.appState.dataframe.columns
+    },
+  };
+
+  const gridDiv = document.querySelector("#myGrid");
+
+  // Si ya hay una instancia, la destruimos para crear la nueva con el nuevo encoding/archivo
+  if (gridApi) {
+    gridApi.destroy();
+  }
+
+  gridApi = agGrid.createGrid(gridDiv, gridOptions);
 }
