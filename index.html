@@ -12,14 +12,6 @@
         />
         <link rel="stylesheet" href="./style.css" />
         <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"
-        />
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
-        />
     </head>
     <body>
         <div class="container-fluid">
@@ -32,10 +24,17 @@
                                 class="btn btn-primary tools"
                                 type="button"
                                 id="cargarTool"
+                                data-bs-toggle="button"
                             >
                                 Cargar archivo
                             </button>
-                            <button class="btn btn-primary tools" type="button">
+                            <button
+                                class="btn btn-primary tools"
+                                type="button"
+                                id="validacionTool"
+                                ,
+                                data-bs-toggle="button"
+                            >
                                 Validación de columnas
                             </button>
                         </div>

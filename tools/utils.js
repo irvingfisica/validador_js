@@ -1,6 +1,8 @@
 export function enableTB(boton) {
-  d3.selectAll(".tools").attr("disabled", true);
-  d3.select(boton).attr("disabled", null);
+  d3.selectAll(".tools").classed("active", false);
+  d3.selectAll(".tools").attr("aria-pressed", false);
+  d3.select(boton).classed("active", true);
+  d3.select(boton).attr("aria-pressed", true);
 }
 
 const statusBox = d3.select("#status");
@@ -102,6 +104,21 @@ function esc(s) {
 export function validarNombreCol(texto) {
   let incidencias = [];
 
+  if (texto.startsWith("columna_sin_nombre_")) {
+    incidencias.push({
+      razon: "La columna no tenía nombre en el archivo original.",
+      tipo: "error",
+    });
+  }
+
+  if (/_\d{2,}$/.test(texto)) {
+    incidencias.push({
+      razon:
+        "El nombre de columna estaba repetido y se le asignó un sufijo numérico.",
+      tipo: "cuidado",
+    });
+  }
+
   if (texto !== texto.toLowerCase()) {
     incidencias.push({
       razon: "El nombre de columna contiene mayúsculas",
@@ -145,6 +162,26 @@ export function validarNombreCol(texto) {
   }
 
   return incidencias;
+}
+
+export function sugerirNombre(cadena) {
+  if (!cadena) return "";
+
+  let limpio = cadena.toLowerCase().trim();
+
+  limpio = limpio.replace(/ñ/g, "ni");
+  limpio = limpio.replace("_1", "_01");
+  limpio = limpio.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  limpio = limpio.replace(/[^a-z0-9]/g, "_");
+
+  let palabras = limpio.split("_");
+  palabras = palabras.filter((p) => p.length > 0 && !prohibidas.has(p));
+  limpio = palabras.join("_");
+  if (/^[0-9]/.test(limpio)) {
+    limpio = "col_" + limpio;
+  }
+
+  return limpio;
 }
 
 export function validarCadena(texto) {
@@ -214,6 +251,7 @@ export function resetState() {
     ratios: null,
     encoding: null,
     dataframe: null,
+    grid: null,
   };
 }
 
@@ -315,14 +353,20 @@ export function analizarColumna(columna) {
   const salida = { tipo: "texto" };
   if (esTextoConvertibleANumerico(arr)) {
     salida["posible_numerico"] = true;
+  } else {
+    salida["posible_numerico"] = false;
   }
 
   if (esTextoConvertibleAFecha(arr)) {
     salida["posible_fecha"] = true;
+  } else {
+    salida["posible_fecha"] = false;
   }
 
   if (esTextoMayusculas(arr)) {
     salida["mayusculas"] = true;
+  } else {
+    salida["mayusculas"] = false;
   }
 
   return salida;
@@ -448,4 +492,52 @@ function esTextoMayusculas(arr) {
 
     return soloLetras === soloLetras.toUpperCase();
   });
+}
+
+export function mostrarGrid(dataframe) {
+  if (window.appState.grid) {
+    window.appState.grid.destroy();
+    window.appState.grid = null;
+  }
+
+  const mesa = d3.select("#mesaTrabajo");
+
+  const block = d3.select("#gridBlock");
+  block.selectAll("*").remove();
+
+  block.append("h2").html("Vista de los datos");
+
+  block
+    .append("div")
+    .attr("id", "myGrid")
+    .attr("class", "ag-theme-quartz")
+    .style("height", "500px")
+    .style("width", "100%");
+
+  const columnDefs = dataframe.headers.map((h) => ({
+    headerName: h,
+    valueGetter: (params) => params.data[h],
+    filter: true,
+    //editable: true,
+  }));
+
+  const gridOptions = {
+    columnDefs: columnDefs,
+    rowData: dataframe.rows,
+    defaultColDef: {
+      sortable: false,
+      resizable: true,
+    },
+    //pagination: true,
+    //paginationPageSize: 100,
+    domLayout: "normal",
+    onCellValueChanged: (event) => {
+      console.log("Dato editado manualmente:", event);
+      // Aquí podrías sincronizar con window.appState.dataframe.columns
+    },
+  };
+
+  const gridDiv = document.querySelector("#myGrid");
+
+  return agGrid.createGrid(gridDiv, gridOptions);
 }

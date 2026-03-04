@@ -33,11 +33,7 @@ body {
     padding-top: 3rem;
 }
 
-#incBlock {
-    margin-top: 2rem;
-}
-
-#gridBlock {
+.bloque {
     margin-top: 2rem;
 }
 

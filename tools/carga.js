@@ -37,17 +37,12 @@ export function intface() {
   const framec = contenedor
     .append("div")
     .attr("id", "gridBlock")
-    .attr("class", "col-md-10");
-
-  framec.append("h2").html("Vista de los datos");
+    .attr("class", "col-md-10 bloque");
 
   const incid = contenedor
     .append("div")
     .attr("id", "incBlock")
-    .attr("class", "col-md-10");
-
-  incid.append("h2").html("Incidencias");
-  incid.append("ul").attr("id", "incidencias");
+    .attr("class", "col-md-10 bloque");
 
   drop
     .on("dragover", function (event) {
@@ -82,6 +77,13 @@ export function intface() {
 }
 
 async function handleFile(file) {
+  if (window.appState.grid) {
+    window.appState.grid.destroy();
+    window.appState.grid = null;
+  }
+
+  d3.select("#gridBlock").selectAll("*").remove();
+
   d3.select("#dropZone p").html(`Procesando archivo...`);
   utils.resetState();
   const encbuts = d3.select("#encodingButtons");
@@ -146,7 +148,6 @@ async function handleFile(file) {
   }
   utils.setStatus("Selecciona una codificación.");
   ratios.sort((a, b) => a.score - b.score);
-  console.log(ratios);
 
   window.appState.file = file;
   window.appState.ratios = ratios;
@@ -213,13 +214,17 @@ async function activateEncoding(ratio, file) {
     );
   }
 
-  console.log(window.appState.dataframe);
-
-  mostrarGrid(window.appState.dataframe);
+  window.appState.grid = utils.mostrarGrid(window.appState.dataframe);
   validacionBase(ratio, file, dataframe);
 }
 
 function validacionBase(ratio, file, dataframe) {
+  const bloque = d3.select("#incBlock");
+  bloque.selectAll("*").remove();
+
+  bloque.append("h2").html("Incidencias");
+  bloque.append("ul").attr("id", "incidencias");
+
   limpiarIncidencias();
   const base = d3.select("#incidencias").append("ul").attr("id", "listaBase");
   validarNombre(file, base);
@@ -278,7 +283,6 @@ function validarColumnas(dataframe) {
     const ul = divc.append("ul");
 
     const incidencias = utils.validarNombreCol(col);
-    console.log(col, incidencias);
     incidencias.forEach((inc, j) => {
       ul.append("li").attr("id", "ele_" + i + "_" + j);
       agregarIncidencia("ele_" + i + "_" + j, inc.razon, inc.tipo);
@@ -404,11 +408,32 @@ function streamCSV(file, encoding) {
       encoding,
       skipEmptyLines: true,
       chunkSize: 1024 * 1024,
+      dynamicTyping: false,
       step: function (results) {
         utils.showSpinner();
         if (!headers) {
-          headers = results.data.map((ele) => ele.trim());
-          headers.forEach((h) => (columns[h] = []));
+          let rawHeaders = results.data.map((ele) => ele.trim());
+          headers = [];
+          let counts = {};
+
+          rawHeaders.forEach((h, i) => {
+            let finalName = h;
+
+            if (finalName === "") {
+              finalName = "columna_sin_nombre".padStart(2, "0");
+            }
+
+            if (counts[finalName] !== undefined) {
+              counts[finalName]++;
+              finalName =
+                finalName + "_" + String(counts[finalName]).padStart(2, "0");
+            } else {
+              counts[finalName] = 0;
+            }
+
+            headers.push(finalName);
+            columns[finalName] = [];
+          });
           return;
         } else {
           let obj = { _index: index++ };
@@ -475,54 +500,4 @@ function agregarIncidencia(ancla, texto, tipo) {
 function limpiarIncidencias() {
   const inco = d3.select("#incidencias");
   inco.selectAll("*").remove();
-}
-
-// En carga.js
-
-let gridApi; // Variable global en el módulo para controlarlo
-
-export function mostrarGrid(dataframe) {
-  // 1. Limpiar o preparar el contenedor en el mainContent
-  const mesa = d3.select("#mesaTrabajo");
-  d3.select("#gridBlock").selectAll("*").remove();
-
-  // Si ya existe el contenedor del grid, no lo dupliques, solo actualiza datos
-  //
-  d3.select("#gridBlock")
-    .append("div")
-    .attr("id", "myGrid")
-    .attr("class", "ag-theme-alpine")
-    .style("height", "500px") // Altura fija o dinámica
-    .style("width", "100%");
-
-  // 2. Configurar columnas para AG Grid
-  const columnDefs = dataframe.headers.map((h) => ({
-    headerName: h,
-    field: h,
-    sortable: true,
-    filter: true,
-    resizable: true,
-    editable: true, // Permitimos edición manual si quieres
-  }));
-
-  const gridOptions = {
-    columnDefs: columnDefs,
-    rowData: dataframe.rows,
-    pagination: true,
-    paginationPageSize: 100,
-    domLayout: "normal",
-    onCellValueChanged: (event) => {
-      console.log("Dato editado manualmente:", event);
-      // Aquí podrías sincronizar con window.appState.dataframe.columns
-    },
-  };
-
-  const gridDiv = document.querySelector("#myGrid");
-
-  // Si ya hay una instancia, la destruimos para crear la nueva con el nuevo encoding/archivo
-  if (gridApi) {
-    gridApi.destroy();
-  }
-
-  gridApi = agGrid.createGrid(gridDiv, gridOptions);
 }
