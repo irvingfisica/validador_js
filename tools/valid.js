@@ -81,50 +81,7 @@ export function intface() {
 
   selecto
     .selectAll("option")
-    .data(function (d) {
-      const datos = window.appState.dataframe.columns[d];
-      const analisis = utils.analizarColumna(datos);
-
-      if (analisis.tipo === "vacia") {
-        return ["vacia", "eliminar columna"];
-      }
-
-      if (analisis.tipo === "numerica") {
-        return ["numerica", "coordenadas", "texto", "eliminar columna"];
-      }
-
-      if (analisis.tipo === "fecha") {
-        return ["fecha", "texto", "eliminar columna"];
-      }
-
-      if (analisis.tipo === "categorica") {
-        return [
-          "texto",
-          "texto sin guones bajos",
-          "texto en minúsculas",
-          "texto capitalizado",
-          "eliminar columna",
-        ];
-      }
-
-      if (analisis.tipo === "texto") {
-        let salida = [
-          "texto",
-          "texto sin guones bajos",
-          "texto en minúsculas",
-          "texto capitalizado",
-          "anonimizar",
-          "eliminar columna",
-        ];
-        if (analisis.posible_numerico) {
-          salida.push("numerica");
-        }
-        if (analisis.posible_fecha) {
-          salida.push("fecha");
-        }
-        return salida;
-      }
-    })
+    .data((d) => opciones(d))
     .join("option")
     .attr("value", (d) => d)
     .html((d) => d);
@@ -137,4 +94,87 @@ export function intface() {
     .on("click", promover);
 }
 
-function promover(e, d) {}
+function opciones(d) {
+  const datos = window.appState.dataframe.columns[d];
+  const analisis = utils.analizarColumna(datos);
+
+  switch (analisis.tipo) {
+    case "vacia":
+      return ["vacia", "eliminar columna"];
+
+    case "numerica":
+      return ["numerica", "coordenadas", "texto", "eliminar columna"];
+
+    case "fecha":
+      return ["fecha", "texto", "eliminar columna"];
+
+    case "categorica":
+      return [
+        "texto",
+        "texto sin giuones bajos",
+        "texto en minúsculas",
+        "texto capitalizado",
+        "eliminar columna",
+      ];
+
+    case "texto": {
+      let salida = [
+        "texto",
+        "texto sin giuones bajos",
+        "texto en minúsculas",
+        "texto capitalizado",
+        "eliminar columna",
+      ];
+      if (analisis.posible_numerico) {
+        salida.push("numerica");
+      }
+      if (analisis.posible_fecha) {
+        salida.push("fecha");
+      }
+      return salida;
+    }
+  }
+}
+
+function promover() {
+  const df = window.appState.dataframe;
+  const nuevosHeaders = [];
+  const nuevasColumnas = {};
+  const transformaciones = [];
+
+  df.headers.forEach((h, i) => {
+    const nuevoNombre = d3.select("#colinp_" + i).property("value");
+    const accion = d3.selectAll("select").nodes()[i].value;
+
+    if (accion !== "eliminar columna") {
+      nuevosHeaders.push(nuevoNombre);
+      transformaciones.push({
+        original: h,
+        nuevo: nuevoNombre,
+        accion: accion,
+      });
+    }
+  });
+
+  transformaciones.forEach((t) => {
+    const datosLimpios = utils.transformarColumna(
+      df.columns[t.original],
+      t.accion,
+    );
+    nuevasColumnas[t.nuevo] = datosLimpios;
+  });
+
+  const nuevasRows = df.rows.map((row, i) => {
+    const nuevaRow = { _index: i };
+    transformaciones.forEach((t) => {
+      nuevaRow[t.nuevo] = nuevasColumnas[t.nuevo][i];
+    });
+    return nuevaRow;
+  });
+
+  window.appState.dataframe.headers = nuevosHeaders;
+  window.appState.dataframe.columns = nuevasColumnas;
+  window.appState.dataframe.rows = nuevasRows;
+
+  intface();
+}

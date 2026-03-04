@@ -100,8 +100,8 @@ async function handleFile(file) {
 
   if (file.name.endsWith(".zip")) {
     const zip = await JSZip.loadAsync(file);
-    const csvFile = Object.values(zip.files).find((f) =>
-      f.name.endsWith(".csv"),
+    const csvFile = Object.values(zip.files).find(
+      (f) => f.name.endsWith(".csv") || file.name.endsWith(".CSV"),
     );
     if (!csvFile) {
       d3.select("#dropZone p").html(
@@ -117,7 +117,7 @@ async function handleFile(file) {
     buffer = await csvFile.async("arraybuffer");
     file = new File([buffer], nombreParaValidar, { type: "text/csv" });
     console.log(file);
-  } else if (file.name.endsWith(".csv")) {
+  } else if (file.name.endsWith(".csv") || file.name.endsWith(".CSV")) {
     buffer = await file.arrayBuffer();
   } else {
     d3.select("#dropZone p").html(
@@ -153,6 +153,7 @@ async function handleFile(file) {
   window.appState.ratios = ratios;
   const enc = ratios[0].encoding;
   renderButtons(file, ratios, enc);
+  d3.select("#descargaTool").property("disabled", false);
 }
 
 function renderButtons(file, ratios, enc) {
@@ -233,7 +234,9 @@ function validacionBase(ratio, file, dataframe) {
 }
 
 function validarNombre(file, base) {
-  const validName = utils.validarCadena(file.name.replace(".csv", ""));
+  const validName = utils.validarCadena(
+    file.name.replace(".csv", "").replace(".CSV", ""),
+  );
   base.append("li").attr("id", "nombre");
   if (validName.valida) {
     agregarIncidencia(

@@ -246,6 +246,8 @@ const prohibidas = new Set([
 ]);
 
 export function resetState() {
+  d3.select("#descargaTool").property("disabled", true);
+
   window.appState = {
     file: null,
     ratios: null,
@@ -408,6 +410,69 @@ function transformarANumerica(arr) {
   });
 }
 
+function transformarACoordenadas(arr) {
+  return arr.map((v) => {
+    if (v === null || v === undefined) return 0.0;
+
+    let s = String(v);
+
+    s = s.trim();
+    s = s.replace(/\s+/g, " ");
+
+    if (
+      [
+        "",
+        "-",
+        " ",
+        "NA",
+        "N/A",
+        "ND",
+        "nd",
+        "*",
+        "na",
+        "nan",
+        "null",
+        "None",
+      ].includes(s)
+    ) {
+      return 0.0;
+    }
+
+    return s;
+  });
+}
+
+function transformarATexto(arr) {
+  return arr.map((v) => {
+    let s = String(v);
+
+    s = s.trim();
+    s = s.replace(/\s+/g, " ");
+
+    if (v === null || v === undefined || v === "" || v === " ")
+      return "Sin dato";
+
+    return s;
+  });
+}
+
+function transformarATextoCapitalizado(arr) {
+  return arr.map((v) => {
+    if (v === "Sin dato") return v;
+    const s = String(v).toLowerCase();
+    const palabras = s.split(/[._]/);
+    return palabras
+      .map((pal, index) => {
+        if (prohibidas.has(pal) && index !== 0) {
+          return pal;
+        } else {
+          return pal.charAt(0).toUpperCase() + pal.slice(1);
+        }
+      })
+      .join(" ");
+  });
+}
+
 function esTextoConvertibleANumerico(arr) {
   const limpio = transformarANumerica(arr);
 
@@ -540,4 +605,25 @@ export function mostrarGrid(dataframe) {
   const gridDiv = document.querySelector("#myGrid");
 
   return agGrid.createGrid(gridDiv, gridOptions);
+}
+
+export function transformarColumna(datos, tipo) {
+  switch (tipo) {
+    case "numerica":
+      return transformarANumerica(datos);
+    case "coordenadas":
+      return transformarACoordenadas(datos);
+    case "fecha":
+      return transformarAFecha(datos);
+    case "texto sin guiones bajos":
+      return transformarATexto(datos).map((v) => String(v).replace(/_/g, " "));
+    case "texto en minúsculas":
+      return transformarATexto(datos).map((v) => String(v).toLowerCase());
+    case "texto capitalizado":
+      return transformarATextoCapitalizado(transformarATexto(datos));
+    case "texto":
+      return transformarATexto(datos);
+    default:
+      return transformarATexto(datos);
+  }
 }
