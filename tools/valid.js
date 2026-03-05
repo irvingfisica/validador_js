@@ -18,12 +18,12 @@ export function intface() {
   const framec = contenedor
     .append("div")
     .attr("id", "gridBlock")
-    .attr("class", "col-md-10 bloque");
+    .attr("class", "col-md-12 bloque");
 
   const cols = contenedor
     .append("div")
     .attr("id", "colBlock")
-    .attr("class", "col-md-10 bloque");
+    .attr("class", "col-md-12 bloque");
 
   if (window.appState.grid) {
     window.appState.grid = utils.mostrarGrid(window.appState.dataframe);
@@ -33,7 +33,7 @@ export function intface() {
   cols
     .append("p")
     .html(
-      "Valida el nombre a usar en cada columna y el tipo de datos que debería de contener.",
+      "Valida el nombre a usar en cada columna y el tipo de datos que debería de contener. La herramineta transformará los datos y ajustará algunos detalles para que la columna satisfaga los criterios",
     );
 
   console.log(window.appState);
@@ -73,7 +73,7 @@ export function intface() {
     .attr("type", "text")
     .attr("class", "form-control")
     .attr("id", (d, i) => "colinp_" + i)
-    .attr("value", (d) => utils.sugerirNombre(d));
+    .attr("value", (d) => utils.sugerirNombre(d, "col_"));
   const selecto = filas
     .append("td")
     .append("select")

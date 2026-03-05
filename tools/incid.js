@@ -15,15 +15,15 @@ export function intface() {
       "En esta sección puedes revisar las incidencias que aún tiene la base de datos. Procura no tener incidencias antes de exportar el archivo.",
     );
 
-  const incid = contenedor
-    .append("div")
-    .attr("id", "incBlock")
-    .attr("class", "col-md-10 bloque");
+  const incid = contenedor.append("div").attr("class", "col-md-4 bloque");
+
+  incid.append("h2").html("Incidencias");
+  incid.append("div").attr("id", "incBlock");
 
   const framec = contenedor
     .append("div")
     .attr("id", "gridBlock")
-    .attr("class", "col-md-10 bloque");
+    .attr("class", "col-md-8 bloque");
 
   const ratios = window.appState.ratios;
   const encoding = window.appState.encoding;
@@ -39,7 +39,6 @@ function validacionBase(ratio, file, dataframe) {
   const bloque = d3.select("#incBlock");
   bloque.selectAll("*").remove();
 
-  bloque.append("h2").html("Incidencias");
   bloque.append("ul").attr("id", "incidencias");
 
   const base = d3.select("#incidencias").append("ul").attr("id", "listaBase");

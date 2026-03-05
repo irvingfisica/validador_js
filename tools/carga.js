@@ -19,9 +19,9 @@ export function intface() {
     );
   desc.append("p").html("Comienza cargando un archivo.");
 
-  const drop = contenedor
-    .append("div")
-    .attr("class", "col-md-10")
+  const dropd = contenedor.append("div").attr("class", "col-md-10");
+
+  const drop = dropd
     .append("div")
     .attr("id", "dropZone")
     .attr("class", "drop-zone");
@@ -34,15 +34,10 @@ export function intface() {
     .attr("id", "encodingButtons")
     .attr("class", "encoding-buttons d-grid gap-2");
 
-  const framec = contenedor
+  const framec = dropd
     .append("div")
     .attr("id", "gridBlock")
-    .attr("class", "col-md-10 bloque");
-
-  const incid = contenedor
-    .append("div")
-    .attr("id", "incBlock")
-    .attr("class", "col-md-10 bloque");
+    .attr("class", "col-md-12 bloque");
 
   drop
     .on("dragover", function (event) {

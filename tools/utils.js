@@ -164,7 +164,7 @@ export function validarNombreCol(texto) {
   return incidencias;
 }
 
-export function sugerirNombre(cadena) {
+export function sugerirNombre(cadena, prefix = "") {
   if (!cadena) return "";
 
   let limpio = cadena.toLowerCase().trim();
@@ -178,7 +178,7 @@ export function sugerirNombre(cadena) {
   palabras = palabras.filter((p) => p.length > 0 && !prohibidas.has(p));
   limpio = palabras.join("_");
   if (/^[0-9]/.test(limpio)) {
-    limpio = "col_" + limpio;
+    limpio = prefix + limpio;
   }
 
   return limpio;
