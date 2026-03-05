@@ -318,7 +318,7 @@ function esFecha(arr) {
   return { esFecha: false };
 }
 
-function esCategorica(arr) {
+export function esCategorica(arr) {
   const unicos = new Set(arr);
   const totalValidos = arr.length;
 
@@ -326,7 +326,7 @@ function esCategorica(arr) {
 
   const ratioUnicidad = unicos.size / totalValidos;
 
-  return unicos.size > 1 && ratioUnicidad <= 0.2;
+  return unicos.size >= 1 && ratioUnicidad <= 0.2;
 }
 
 export function analizarColumna(columna) {

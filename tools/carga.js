@@ -71,6 +71,7 @@ export function intface() {
 
     d3.select("#validacionTool").property("disabled", false);
     d3.select("#incidenciasTool").property("disabled", false);
+    d3.select("#categosTool").property("disabled", false);
   }
 }
 
@@ -152,6 +153,7 @@ async function handleFile(file) {
   d3.select("#descargaTool").property("disabled", false);
   d3.select("#validacionTool").property("disabled", false);
   d3.select("#incidenciasTool").property("disabled", false);
+  d3.select("#categosTool").property("disabled", false);
 }
 
 function renderButtons(file, ratios, enc) {
