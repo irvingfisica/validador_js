@@ -177,4 +177,5 @@ function promover() {
   window.appState.dataframe.rows = nuevasRows;
 
   intface();
+  utils.showToast("Cambios promovidos", "success");
 }

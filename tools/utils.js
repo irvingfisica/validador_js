@@ -247,6 +247,8 @@ const prohibidas = new Set([
 
 export function resetState() {
   d3.select("#descargaTool").property("disabled", true);
+  d3.select("#validacionTool").property("disabled", true);
+  d3.select("#incidenciaTool").property("disabled", true);
 
   window.appState = {
     file: null,
@@ -626,4 +628,28 @@ export function transformarColumna(datos, tipo) {
     default:
       return transformarATexto(datos);
   }
+}
+
+export function showToast(message, type = "danger") {
+  // type: "success", "danger", "warning", "info"
+
+  const container = document.getElementById("toast-container");
+
+  const toastEl = document.createElement("div");
+  toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+  toastEl.role = "alert";
+  toastEl.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">${message}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  `;
+
+  container.appendChild(toastEl);
+
+  const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+  toast.show();
+
+  toastEl.addEventListener("hidden.bs.toast", () => toastEl.remove());
 }

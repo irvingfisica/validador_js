@@ -1,11 +1,13 @@
 import * as utils from "./tools/utils.js";
 import * as carga from "./tools/carga.js";
 import * as valid from "./tools/valid.js";
+import * as incid from "./tools/incid.js";
 
 utils.resetState();
 
 d3.select("#cargarTool").on("click", carga.intface);
 d3.select("#validacionTool").on("click", valid.intface);
+d3.select("#incidenciasTool").on("click", incid.intface);
 
 carga.intface();
 
