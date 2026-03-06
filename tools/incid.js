@@ -105,7 +105,7 @@ function validarColumnas(dataframe) {
       agregarIncidencia("ele_" + i + "_" + j, inc.razon, inc.tipo);
     });
 
-    const tipocol = utils.analizarColumna(dataframe.columns[col]);
+    const tipocol = utils.analizarColumna(dataframe.columns[col], col);
     if (tipocol.tipo === "vacia") {
       ul.append("li").attr("id", "tipo_" + i);
       agregarIncidencia(

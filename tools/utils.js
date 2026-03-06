@@ -257,6 +257,7 @@ export function resetState() {
     encoding: null,
     dataframe: null,
     grid: null,
+    tipos: null,
   };
 }
 
@@ -330,7 +331,7 @@ export function esCategorica(arr) {
   return unicos.size >= 1 && ratioUnicidad <= 0.2;
 }
 
-export function analizarColumna(columna) {
+export function analizarColumna(columna, colname) {
   const totalOriginal = columna.length;
 
   const arr = columna
@@ -339,22 +340,76 @@ export function analizarColumna(columna) {
     .filter((v) => v !== "");
 
   if (arr.length === 0) {
+    if (
+      window.appState.tipos[colname] &&
+      window.appState.tipos[colname] === "numerica"
+    ) {
+      const salida = { tipo: "numerica" };
+      if (esVacia(arr)) {
+        salida["posible_vacia"] = true;
+      } else {
+        salida["posible_vacia"] = false;
+      }
+      return salida;
+    }
+    window.appState.tipos[colname] = "vacia";
     return { tipo: "vacia" };
   }
 
   if (esNumerica(arr)) {
-    return { tipo: "numerica" };
+    if (
+      window.appState.tipos[colname] &&
+      window.appState.tipos[colname] === "texto"
+    ) {
+      return { tipo: "texto" };
+    }
+
+    window.appState.tipos[colname] = "numerica";
+    const salida = { tipo: "numerica" };
+    if (esVacia(arr)) {
+      salida["posible_vacia"] = true;
+    } else {
+      salida["posible_vacia"] = false;
+    }
+    return salida;
   }
 
   const fechaInfo = esFecha(arr);
   if (fechaInfo.esFecha) {
+    if (
+      window.appState.tipos[colname] &&
+      window.appState.tipos[colname] === "texto"
+    ) {
+      return { tipo: "texto" };
+    }
+    window.appState.tipos[colname] = "fecha";
     return { tipo: "fecha", formato: fechaInfo.formato };
   }
 
   if (esCategorica(arr, totalOriginal)) {
-    return { tipo: "categorica" };
+    window.appState.tipos[colname] = "texto";
+    const salida = { tipo: "categorica" };
+    if (esTextoConvertibleANumerico(arr)) {
+      salida["posible_numerico"] = true;
+    } else {
+      salida["posible_numerico"] = false;
+    }
+
+    if (esTextoConvertibleAFecha(arr)) {
+      salida["posible_fecha"] = true;
+    } else {
+      salida["posible_fecha"] = false;
+    }
+
+    if (esTextoMayusculas(arr)) {
+      salida["mayusculas"] = true;
+    } else {
+      salida["mayusculas"] = false;
+    }
+    return salida;
   }
 
+  window.appState.tipos[colname] = "texto";
   const salida = { tipo: "texto" };
   if (esTextoConvertibleANumerico(arr)) {
     salida["posible_numerico"] = true;
@@ -378,7 +433,7 @@ export function analizarColumna(columna) {
 }
 
 function transformarANumerica(arr) {
-  return arr.map((v) => {
+  const salida = arr.map((v) => {
     if (v === null || v === undefined) return null;
 
     let s = String(v);
@@ -404,6 +459,7 @@ function transformarANumerica(arr) {
         "nan",
         "null",
         "None",
+        "Sin dato",
       ].includes(s)
     ) {
       return null;
@@ -411,6 +467,7 @@ function transformarANumerica(arr) {
 
     return s;
   });
+  return salida;
 }
 
 function transformarACoordenadas(arr) {
@@ -436,6 +493,7 @@ function transformarACoordenadas(arr) {
         "nan",
         "null",
         "None",
+        "Sin dato",
       ].includes(s)
     ) {
       return 0.0;
@@ -476,13 +534,23 @@ function transformarATextoCapitalizado(arr) {
   });
 }
 
+function esVacia(arr) {
+  const limpio = transformarANumerica(arr);
+
+  const validos = limpio.filter((v) => v !== null);
+
+  if (validos.length === 0) {
+    return true;
+  }
+}
+
 function esTextoConvertibleANumerico(arr) {
   const limpio = transformarANumerica(arr);
 
   const validos = limpio.filter((v) => v !== null);
 
   if (validos.length === 0) {
-    return false;
+    return true;
   }
 
   if (!esNumerica(validos)) {
@@ -521,6 +589,7 @@ function transformarAFecha(arr) {
         "nan",
         "null",
         "None",
+        "Sin dato",
       ].includes(s)
     ) {
       return null;

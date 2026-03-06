@@ -209,6 +209,10 @@ async function activateEncoding(ratio, file) {
     window.appState.dataframe = dataframe;
     window.appState.encoding = ratio.encoding;
     console.log(dataframe);
+    window.appState.tipos = {};
+    dataframe.headers.forEach((col) => {
+      utils.analizarColumna(dataframe.columns[col], col);
+    });
     utils.setStatus(
       `CSV cargado: ${dataframe.rows.length.toLocaleString()} filas; ${dataframe.headers.length.toLocaleString()} columnas.`,
     );
@@ -275,7 +279,7 @@ function streamCSV(file, encoding) {
       },
       complete: function () {
         utils.hideSpinner();
-        resolve({ headers, rows, columns, meta: {} });
+        resolve({ headers, rows, columns });
       },
     });
   });

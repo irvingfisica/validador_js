@@ -96,31 +96,44 @@ export function intface() {
 
 function opciones(d) {
   const datos = window.appState.dataframe.columns[d];
-  const analisis = utils.analizarColumna(datos);
+  const analisis = utils.analizarColumna(datos, d);
 
   switch (analisis.tipo) {
     case "vacia":
-      return ["vacia", "eliminar columna"];
+      return ["vacia", "numerica", "eliminar columna"];
 
-    case "numerica":
-      return ["numerica", "coordenadas", "texto", "eliminar columna"];
+    case "numerica": {
+      let salida = ["numerica", "coordenadas", "texto", "eliminar columna"];
+      if (analisis.posible_vacia) {
+        salida.push("vacia");
+      }
+      return salida;
+    }
 
     case "fecha":
       return ["fecha", "texto", "eliminar columna"];
 
-    case "categorica":
-      return [
+    case "categorica": {
+      let salida = [
         "texto",
-        "texto sin giuones bajos",
+        "texto sin guiones bajos",
         "texto en minúsculas",
         "texto capitalizado",
         "eliminar columna",
       ];
+      if (analisis.posible_numerico) {
+        salida.push("numerica");
+      }
+      if (analisis.posible_fecha) {
+        salida.push("fecha");
+      }
+      return salida;
+    }
 
     case "texto": {
       let salida = [
         "texto",
-        "texto sin giuones bajos",
+        "texto sin guiones bajos",
         "texto en minúsculas",
         "texto capitalizado",
         "eliminar columna",
@@ -156,11 +169,13 @@ function promover() {
     }
   });
 
+  window.appState.tipos = {};
   transformaciones.forEach((t) => {
     const datosLimpios = utils.transformarColumna(
       df.columns[t.original],
       t.accion,
     );
+    window.appState.tipos[t.nuevo] = t.accion;
     nuevasColumnas[t.nuevo] = datosLimpios;
   });
 
