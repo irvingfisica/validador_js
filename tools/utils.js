@@ -170,7 +170,6 @@ export function sugerirNombre(cadena, prefix = "") {
   let limpio = cadena.toLowerCase().trim();
 
   limpio = limpio.replace(/ñ/g, "ni");
-  limpio = limpio.replace("_1", "_01");
   limpio = limpio.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   limpio = limpio.replace(/[^a-z0-9]/g, "_");
 
@@ -180,6 +179,8 @@ export function sugerirNombre(cadena, prefix = "") {
   if (/^[0-9]/.test(limpio)) {
     limpio = prefix + limpio;
   }
+
+  limpio = limpio.replace("_1", "_01");
 
   return limpio;
 }
@@ -261,10 +262,10 @@ export function resetState() {
 
 function esNumerica(arr) {
   return arr.every((v) => {
-    if (v === null || v === undefined) return false;
+    if (v === null || v === undefined) return true;
 
     const s = String(v).trim();
-    if (s === "") return false;
+    if (s === "") return true;
 
     if (!/^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(s)) return false;
 
